@@ -11,6 +11,9 @@ implementation detail lives here.
                is about packages.
 - intake       A single scheduled dose of a medication at a time. The atom of
                the schedule.
+- dose event   The record of what happened to a single intake: taken on time,
+               taken late (with the actual time the dose was taken), or
+               skipped. The shift engine reacts to these.
 - schedule     The ordered set of intakes for a medication across a day.
 - shift        The re-timing of remaining intakes after a dose is taken late
                (the core v1 behavior).

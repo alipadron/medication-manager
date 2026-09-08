@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['schedule_id', 'time', 'sort_order'])]
 class Intake extends Model
@@ -22,5 +23,15 @@ class Intake extends Model
     public function schedule(): BelongsTo
     {
         return $this->belongsTo(Schedule::class);
+    }
+
+    /**
+     * Get the dose events recorded against this intake.
+     *
+     * @return HasMany<DoseEvent, $this>
+     */
+    public function doseEvents(): HasMany
+    {
+        return $this->hasMany(DoseEvent::class);
     }
 }
