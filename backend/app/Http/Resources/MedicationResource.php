@@ -20,6 +20,7 @@ class MedicationResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'person_id' => $this->person_id,
+            'safe_interval_minutes' => $this->safe_interval_minutes,
             'created_at' => $this->created_at,
         ];
     }

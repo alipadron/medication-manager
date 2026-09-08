@@ -21,6 +21,7 @@ class MedicationFactory extends Factory
         return [
             'person_id' => Person::factory(),
             'name' => fake()->unique()->word(),
+            'safe_interval_minutes' => 240,
         ];
     }
 }

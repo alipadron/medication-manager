@@ -9,11 +9,23 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['person_id', 'name'])]
+#[Fillable(['person_id', 'name', 'safe_interval_minutes'])]
 class Medication extends Model
 {
     /** @use HasFactory<MedicationFactory> */
     use HasFactory;
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'safe_interval_minutes' => 'integer',
+        ];
+    }
 
     /**
      * Get the person this medication is given to.

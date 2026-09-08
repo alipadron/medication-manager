@@ -24,6 +24,7 @@ class StoreMedicationRequest extends FormRequest
         return [
             'person_id' => ['required', 'integer', 'exists:people,id'],
             'name' => ['required', 'string', 'max:255'],
+            'safe_interval_minutes' => ['nullable', 'integer', 'min:1'],
         ];
     }
 }
