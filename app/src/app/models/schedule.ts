@@ -8,6 +8,11 @@
 
 export type DosingPattern = 'interval' | 'fixed_times';
 
+/** Laravel API Resources wrap every response body in a `data` key. */
+export interface ApiEnvelope<T> {
+  data: T;
+}
+
 export interface Person {
   id: number;
   name: string;

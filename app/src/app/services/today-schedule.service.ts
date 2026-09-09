@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, combineLatest, forkJoin, map, switchMap, throwError } from 'rxjs';
 
 import {
+  ApiEnvelope,
   Medication,
   MedicationPlanView,
   Person,
@@ -29,30 +30,42 @@ export class TodayScheduleService {
 
   readonly #base = '/api/v1';
 
+  /** Read a collection route, unwrapping Laravel's `{ data: [...] }` envelope. */
+  #list<T>(path: string, params?: Record<string, string>): Observable<T[]> {
+    return this.#http
+      .get<ApiEnvelope<T[]>>(`${this.#base}${path}`, { params })
+      .pipe(map((response) => response.data));
+  }
+
+  /** Read a single-item route, unwrapping Laravel's `{ data: {...} }` envelope. */
+  #get<T>(path: string): Observable<T> {
+    return this.#http
+      .get<ApiEnvelope<T>>(`${this.#base}${path}`)
+      .pipe(map((response) => response.data));
+  }
+
   /** All household members. */
   people(): Observable<Person[]> {
-    return this.#http.get<Person[]>(`${this.#base}/people`);
+    return this.#list<Person>('/people');
   }
 
   /** Medications prescribed to a person. */
   medications(personId: number): Observable<Medication[]> {
-    return this.#http.get<Medication[]>(`${this.#base}/medications`, {
-      params: { person_id: personId.toString() },
+    return this.#list<Medication>('/medications', {
+      person_id: personId.toString(),
     });
   }
 
   /** All schedules across the household. */
   schedules(): Observable<ScheduleSummary[]> {
-    return this.#http.get<ScheduleSummary[]>(`${this.#base}/schedules`);
+    return this.#list<ScheduleSummary>('/schedules');
   }
 
   /**
    * The authoritative plan for one schedule (no date => server's today).
    */
   plan(scheduleId: number): Observable<SchedulePlan> {
-    return this.#http.get<SchedulePlan>(
-      `${this.#base}/schedules/${scheduleId}/plan`,
-    );
+    return this.#get<SchedulePlan>(`/schedules/${scheduleId}/plan`);
   }
 
   /**
