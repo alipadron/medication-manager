@@ -119,6 +119,33 @@ it('deletes each skipped cadence slot as the cadence rolls across nights', funct
     expect($plan->dueAt?->toDateTimeString())->toBe('2026-09-08 08:00:00');
 });
 
+it('rolls the cadence across midnight with no clamp', function () {
+    $schedule = makeIntervalSchedule(8);
+    recordIntervalDose($schedule, 'on_time', '2026-09-09 23:00:00');
+
+    $plan = app(SchedulePlanner::class)->intervalPlan($schedule);
+
+    // The due lands at 07:00 the next morning — the cadence crosses the
+    // night boundary untouched (no daily reset, no midnight clamp).
+    expect($plan->lastActualDoseAt?->toDateTimeString())->toBe('2026-09-09 23:00:00')
+        ->and($plan->dueAt?->toDateTimeString())->toBe('2026-09-10 07:00:00');
+});
+
+it('never leaves the due time in the past after a skip recorded several slots late', function () {
+    $schedule = makeIntervalSchedule(8);
+    recordIntervalDose($schedule, 'on_time', '2026-09-08 08:00:00');
+
+    // The 16:00 and 00:00 slots pass untouched; the user skips at 09:00 the
+    // next day. The slot they mean is the 08:00 one just missed, so the
+    // next due is 16:00 — never a moment before the skip was recorded.
+    $this->travelTo('2026-09-10 09:00:00');
+    recordIntervalSkip($schedule);
+
+    $plan = app(SchedulePlanner::class)->intervalPlan($schedule);
+
+    expect($plan->dueAt?->toDateTimeString())->toBe('2026-09-10 16:00:00');
+});
+
 it('ignores a skip recorded before its cadence slot is due', function () {
     $schedule = makeIntervalSchedule(8);
     recordIntervalDose($schedule, 'on_time', '2026-09-09 08:00:00');

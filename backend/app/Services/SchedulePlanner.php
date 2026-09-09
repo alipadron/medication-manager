@@ -24,10 +24,14 @@ class SchedulePlanner
      * on-time/late dose event carrying a taken_at. A taken-late dose
      * re-anchors the cadence to its actual time. A skipped dose deletes
      * its cadence slot: a skip recorded at-or-after the current due time
-     * advances the due by one interval (nothing compresses, nothing is
-     * caught up — the cadence still derives from the last actual dose).
-     * With no actual dose yet, the cadence is seeded from the nominal
-     * start alignment and rolled forward to the next upcoming slot.
+     * rolls the due forward one interval at a time until it is the first
+     * slot strictly after the skip's record moment — the slot the skip
+     * refers to is gone and earlier elapsed slots are not re-offered, so
+     * nothing compresses, nothing is caught up, and a skip never leaves
+     * the plan pointing at a due time in the past. The cadence still
+     * derives from the last actual dose. With no actual dose yet, the
+     * cadence is seeded from the nominal start alignment and rolled
+     * forward to the next upcoming slot.
      */
     public function intervalPlan(Schedule $schedule): IntervalPlan
     {
@@ -62,7 +66,7 @@ class SchedulePlanner
             $dueAt = $lastActualDoseAt->addHours($hours);
 
             foreach ($skips as $skipAt) {
-                if ($skipAt->gte($dueAt)) {
+                while ($skipAt->gte($dueAt)) {
                     $dueAt = $dueAt->addHours($hours);
                 }
             }
