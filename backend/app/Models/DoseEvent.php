@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['intake_id', 'outcome', 'taken_at'])]
+#[Fillable(['schedule_id', 'intake_id', 'outcome', 'taken_at'])]
 class DoseEvent extends Model
 {
     /** @use HasFactory<DoseEventFactory> */
@@ -29,7 +29,18 @@ class DoseEvent extends Model
     }
 
     /**
-     * Get the intake this dose event records.
+     * Get the schedule this dose event was recorded against.
+     *
+     * @return BelongsTo<Schedule, $this>
+     */
+    public function schedule(): BelongsTo
+    {
+        return $this->belongsTo(Schedule::class);
+    }
+
+    /**
+     * Get the intake this dose event records (null for interval meds,
+     * which have no intake grid).
      *
      * @return BelongsTo<Intake, $this>
      */

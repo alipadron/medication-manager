@@ -1,7 +1,9 @@
 <?php
 
+use App\Enums\DosingPattern;
 use App\Models\DoseEvent;
 use App\Models\Intake;
+use App\Models\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 
@@ -107,6 +109,52 @@ it('requires the actual time for a late dose event', function () {
     ])
         ->assertUnprocessable()
         ->assertJsonValidationErrors('taken_at');
+});
+
+it('stores a schedule-scoped dose event (interval med, no intake grid)', function () {
+    $schedule = Schedule::factory()->create([
+        'dosing_pattern' => DosingPattern::Interval,
+        'interval_hours' => 8,
+    ]);
+
+    $response = $this->postJson('/api/v1/dose-events', [
+        'schedule_id' => $schedule->id,
+        'outcome' => 'late',
+        'taken_at' => '2026-09-09 16:00:00',
+    ])
+        ->assertCreated()
+        ->assertJsonPath('data.schedule_id', $schedule->id)
+        ->assertJsonPath('data.intake_id', null)
+        ->assertJsonPath('data.outcome', 'late');
+
+    $this->assertDatabaseHas('dose_events', [
+        'id' => $response->json('data.id'),
+        'schedule_id' => $schedule->id,
+        'intake_id' => null,
+        'outcome' => 'late',
+    ]);
+});
+
+it('requires the actual time for an on-time event without an intake', function () {
+    $schedule = Schedule::factory()->create([
+        'dosing_pattern' => DosingPattern::Interval,
+        'interval_hours' => 8,
+    ]);
+
+    $this->postJson('/api/v1/dose-events', [
+        'schedule_id' => $schedule->id,
+        'outcome' => 'on_time',
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('taken_at');
+});
+
+it('requires an intake or a schedule for a dose event', function () {
+    $this->postJson('/api/v1/dose-events', [
+        'outcome' => 'on_time',
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['intake_id', 'schedule_id']);
 });
 
 it('requires a valid actual time for a late dose event', function () {

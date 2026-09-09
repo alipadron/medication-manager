@@ -18,6 +18,7 @@ class DoseEventResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'schedule_id' => $this->schedule_id,
             'intake_id' => $this->intake_id,
             'outcome' => $this->outcome?->value,
             'taken_at' => $this->taken_at,

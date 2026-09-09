@@ -15,12 +15,27 @@ class DoseEventFactory extends Factory
     /**
      * Define the model's default state.
      *
+     * schedule_id is derived from the intake (kept in sync at insert time);
+     * schedule-scoped interval events pass an explicit schedule_id and a
+     * null intake_id instead.
+     *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
             'intake_id' => Intake::factory(),
+            'schedule_id' => function (array $attributes): ?int {
+                $intakeId = $attributes['intake_id'] ?? null;
+
+                if ($intakeId instanceof Intake) {
+                    return $intakeId->schedule_id;
+                }
+
+                return is_numeric($intakeId)
+                    ? Intake::find((int) $intakeId)?->schedule_id
+                    : null;
+            },
             'outcome' => DoseEventOutcome::OnTime,
             'taken_at' => null,
         ];

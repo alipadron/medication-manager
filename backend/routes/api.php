@@ -10,5 +10,6 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('people', PersonController::class)->only(['index', 'store']);
     Route::apiResource('medications', MedicationController::class)->only(['index', 'store']);
     Route::apiResource('schedules', ScheduleController::class)->only(['index', 'store']);
+    Route::get('schedules/{schedule}/plan', [ScheduleController::class, 'plan'])->name('schedules.plan');
     Route::apiResource('dose-events', DoseEventController::class)->only(['index', 'store']);
 });
