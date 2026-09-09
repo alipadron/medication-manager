@@ -12,6 +12,23 @@ ng serve
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
+### Talking to the Laravel backend in dev
+
+The Angular dev server (default `http://localhost:4200`) cannot fetch
+`/api/...` cross-origin from Laravel (`http://localhost:8000`) directly.
+Cross-origin/dev connectivity is handled with the **Angular dev-server proxy**
+(not a CORS change): `angular.json` sets `serve.options.proxyConfig` to
+`proxy.conf.json`, which forwards every `/api` request to
+`http://127.0.0.1:8000` in the browser's own origin (no CORS needed, no
+`Access-Control-Allow-Origin` workaround).
+
+- Proxy rule: `/api` -> `http://127.0.0.1:8000` (`changeOrigin: true`).
+- The client talks to Laravel as `/api/v1/...` relative URLs, so no
+  hard-coded host lives in the app code.
+
+Start the backend with `php artisan serve` (Laravel) on port 8000, then
+`ng serve` on 4200. Open http://localhost:4200/today.
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:

@@ -1,0 +1,115 @@
+<div class="mx-auto max-w-2xl px-4 py-6">
+  <nav aria-label="Person" class="mb-6 flex flex-wrap gap-2">
+    @for (person of people(); track person.id) {
+      @let selected = person.id === selectedPersonId();
+      <a
+        [routerLink]="['/today', person.id]"
+        [attr.aria-current]="selected ? 'page' : undefined"
+        class="inline-flex rounded-full border px-4 py-1.5 text-sm font-medium transition-colors"
+        [class.border-indigo-500]="selected"
+        [class.bg-indigo-50]="selected"
+        [class.text-indigo-700]="selected"
+        [class.border-gray-300]="!selected"
+        [class.text-gray-700]="!selected"
+        [class.hover:border-gray-400]="!selected"
+      >
+        {{ person.name }}
+      </a>
+    }
+  </nav>
+
+  <header class="mb-6">
+    <h1 class="text-2xl font-semibold text-gray-900">
+      Today's schedule for {{ personName() }}
+    </h1>
+    <p class="mt-1 text-sm text-gray-500">
+      Fetched live from the server — the source of truth.
+    </p>
+  </header>
+
+  @if (isLoading()) {
+    <section aria-busy="true">
+      <p role="status" class="text-sm text-gray-600">Loading today's schedule…</p>
+    </section>
+  }
+
+  @if (error(); as requestError) {
+    <div
+      role="alert"
+      class="rounded-md border border-red-300 bg-red-50 p-4 text-sm text-red-800"
+    >
+      Couldn't load today's schedule: {{ requestError.message }}
+    </div>
+  }
+
+  @let view = today();
+
+  @if (view && !isLoading() && error() === undefined) {
+    @if (view.medications.length === 0) {
+      <p role="status" class="text-sm text-gray-600">
+        {{ view.person.name }} has no scheduled medications today.
+      </p>
+    } @else {
+      <ul class="space-y-4">
+        @for (medication of view.medications; track medication.scheduleId) {
+          <li>
+            <article
+              class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+            >
+              <h2 class="mb-3 text-lg font-semibold text-gray-900">
+                {{ medication.medicationName }}
+              </h2>
+
+              @if (asInterval(medication.plan); as interval) {
+                <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+                  <dt class="text-gray-500">Next dose due</dt>
+                  <dd class="font-medium text-gray-900">
+                    {{ formatInstant(interval.due_at) }}
+                  </dd>
+
+                  <dt class="text-gray-500">Cadence</dt>
+                  <dd class="text-gray-700">
+                    Every {{ interval.interval_hours }} hours
+                  </dd>
+
+                  <dt class="text-gray-500">Status</dt>
+                  <dd>
+                    <span
+                      class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium"
+                      [class.bg-red-100]="interval.due_status === 'overdue'"
+                      [class.text-red-700]="interval.due_status === 'overdue'"
+                      [class.bg-emerald-100]="interval.due_status === 'upcoming'"
+                      [class.text-emerald-700]="interval.due_status === 'upcoming'"
+                      [class.bg-gray-100]="interval.due_status === 'unknown'"
+                      [class.text-gray-600]="interval.due_status === 'unknown'"
+                    >
+                      {{ interval.due_status }}
+                    </span>
+                  </dd>
+                </dl>
+              } @else if (asFixed(medication.plan); as fixed) {
+                <p class="mb-3 text-xs font-medium uppercase tracking-wide text-gray-500">
+                  Today's intakes
+                </p>
+                <ul>
+                  @for (intake of fixed.intakes; track intake.id) {
+                    <li
+                      class="flex items-center justify-between rounded-md px-2 py-1.5 text-sm odd:bg-gray-50"
+                    >
+                      <span class="font-mono font-medium text-gray-900">
+                        {{ intake.planned_time ?? intake.time }}
+                      </span>
+                      <span class="text-gray-600">
+                        {{ intakeStatusLabels[intake.status] }}
+                      </span>
+                    </li>
+                  }
+                </ul>
+              }
+            </article>
+          </li>
+        }
+      </ul>
+    }
+  }
+</div>
