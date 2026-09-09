@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\V1\DoseEventController;
+use App\Http\Controllers\Api\V1\HomeInventoryController;
 use App\Http\Controllers\Api\V1\MedicationController;
+use App\Http\Controllers\Api\V1\PackageController;
 use App\Http\Controllers\Api\V1\PersonController;
 use App\Http\Controllers\Api\V1\ScheduleController;
 use Illuminate\Support\Facades\Route;
@@ -12,4 +14,6 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('schedules', ScheduleController::class)->only(['index', 'store']);
     Route::get('schedules/{schedule}/plan', [ScheduleController::class, 'plan'])->name('schedules.plan');
     Route::apiResource('dose-events', DoseEventController::class)->only(['index', 'store']);
+    Route::apiResource('packages', PackageController::class)->only(['index', 'store', 'update']);
+    Route::apiResource('home-inventory', HomeInventoryController::class)->only(['index', 'store']);
 });

@@ -75,7 +75,7 @@ it('exposes a refill forecast computed from the schedule consumption', function 
         ->assertOk()
         ->assertJsonPath('data.0.forecast.status', 'refill_soon')
         ->assertJsonPath('data.0.forecast.doses_remaining', 4)
-        ->assertJsonPath('data.0.forecast.doses_per_day', 3.0)
+        ->assertJsonPath('data.0.forecast.doses_per_day', 3)
         ->assertJsonPath('data.0.forecast.days_of_supply_left', 1.3)
         ->assertJsonPath('data.0.forecast.refill_by', '2026-09-10')
         ->assertJsonPath('data.0.forecast.refill_by_day', 'Thursday')
@@ -108,7 +108,7 @@ it('records consumption toward the forecast via an update', function () {
         ->assertOk()
         ->assertJsonPath('data.remaining_doses', 4)
         ->assertJsonPath('data.forecast.status', 'refill_soon')
-        ->assertJsonPath('data.forecast.doses_per_day', 2.0)
+        ->assertJsonPath('data.forecast.doses_per_day', 2)
         ->assertJsonPath('data.forecast.refill_by', '2026-09-10')
         ->assertJsonPath('data.forecast.refill_by_day', 'Thursday')
         ->assertJsonPath('data.forecast.message', '4 doses left, refill by Thursday');

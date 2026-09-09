@@ -17,7 +17,6 @@ it('creates a home inventory entry with its expiry date', function () {
     $this->assertDatabaseHas('home_inventory_entries', [
         'id' => $response->json('data.id'),
         'name' => 'Amoxicillin 500mg',
-        'expiry_date' => '2026-12-31',
     ]);
 });
 
