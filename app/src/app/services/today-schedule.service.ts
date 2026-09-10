@@ -4,12 +4,14 @@ import { Observable, of, combineLatest, forkJoin, map, switchMap, throwError } f
 
 import {
   ApiEnvelope,
+  DoseEvent,
   Medication,
   MedicationPlanView,
   Person,
   PersonTodayView,
   SchedulePlan,
   ScheduleSummary,
+  StoreDoseEventPayload,
 } from '../models/schedule';
 
 /**
@@ -66,6 +68,17 @@ export class TodayScheduleService {
    */
   plan(scheduleId: number): Observable<SchedulePlan> {
     return this.#get<SchedulePlan>(`/schedules/${scheduleId}/plan`);
+  }
+
+  /**
+   * Record a dose event. This is a thin write: the server owns the
+   * consequence (an interval cadence re-anchors, a fixed-times grid
+   * shifts), so callers re-read `plan()` afterwards to see the result.
+   */
+  recordDoseEvent(payload: StoreDoseEventPayload): Observable<DoseEvent> {
+    return this.#http
+      .post<ApiEnvelope<DoseEvent>>(`${this.#base}/dose-events`, payload)
+      .pipe(map((response) => response.data));
   }
 
   /**

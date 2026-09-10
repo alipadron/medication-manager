@@ -42,6 +42,24 @@
     </div>
   }
 
+  @if (actionNotice(); as notice) {
+    <p
+      role="status"
+      class="mb-4 rounded-md border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800"
+    >
+      {{ notice }}
+    </p>
+  }
+
+  @if (actionError(); as failure) {
+    <div
+      role="alert"
+      class="mb-4 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+    >
+      {{ failure }}
+    </div>
+  }
+
   @let view = today();
 
   @if (view && !isLoading() && error() === undefined) {
@@ -87,21 +105,200 @@
                     </span>
                   </dd>
                 </dl>
+
+                <div
+                  role="group"
+                  class="mt-4 flex flex-wrap gap-2"
+                  [attr.aria-label]="
+                    'Record the next dose of ' + medication.medicationName
+                  "
+                  [attr.aria-busy]="isSubmitting(scheduleTarget(medication))"
+                >
+                  <button
+                    type="button"
+                    class="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
+                    [disabled]="isSubmitting(scheduleTarget(medication))"
+                    (click)="recordOnTime(scheduleTarget(medication))"
+                  >
+                    Taken on time
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-md border border-amber-300 bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-800 transition-colors hover:bg-amber-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
+                    [attr.aria-expanded]="isLateOpen(scheduleTarget(medication))"
+                    [attr.aria-controls]="lateInputId(scheduleTarget(medication))"
+                    [disabled]="isSubmitting(scheduleTarget(medication))"
+                    (click)="openLateForm(scheduleTarget(medication))"
+                  >
+                    Taken late
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 disabled:cursor-not-allowed disabled:opacity-60"
+                    [disabled]="isSubmitting(scheduleTarget(medication))"
+                    (click)="recordSkipped(scheduleTarget(medication))"
+                  >
+                    Skipped
+                  </button>
+                </div>
+
+                @if (isLateOpen(scheduleTarget(medication))) {
+                  <form
+                    class="mt-3 flex flex-wrap items-end gap-2 rounded-md border border-amber-200 bg-amber-50 p-3"
+                    (submit)="submitLate(scheduleTarget(medication), $event)"
+                  >
+                    <div class="flex flex-col gap-1">
+                      <label
+                        [attr.for]="lateInputId(scheduleTarget(medication))"
+                        class="text-xs font-medium text-amber-900"
+                      >
+                        Time taken
+                      </label>
+                      <input
+                        #lateInput
+                        [attr.id]="lateInputId(scheduleTarget(medication))"
+                        type="datetime-local"
+                        [value]="lateTakenAt()"
+                        (input)="onLateInput($event)"
+                        class="rounded-md border border-amber-300 bg-white px-2 py-1 text-sm text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      class="rounded-md border border-transparent bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
+                      [disabled]="isSubmitting(scheduleTarget(medication))"
+                    >
+                      Save late dose
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500"
+                      (click)="cancelLateForm()"
+                    >
+                      Cancel
+                    </button>
+                  </form>
+                }
               } @else if (asFixed(medication.plan); as fixed) {
-                <p class="mb-3 text-xs font-medium uppercase tracking-wide text-gray-500">
+                <p
+                  class="mb-3 text-xs font-medium uppercase tracking-wide text-gray-500"
+                >
                   Today's intakes
                 </p>
-                <ul>
+                <ul class="space-y-1">
                   @for (intake of fixed.intakes; track intake.id) {
-                    <li
-                      class="flex items-center justify-between rounded-md px-2 py-1.5 text-sm odd:bg-gray-50"
-                    >
-                      <span class="font-mono font-medium text-gray-900">
-                        {{ intake.planned_time ?? intake.time }}
-                      </span>
-                      <span class="text-gray-600">
-                        {{ intakeStatusLabels[intake.status] }}
-                      </span>
+                    <li class="rounded-md px-2 py-2 text-sm odd:bg-gray-50">
+                      <div class="flex items-center justify-between gap-4">
+                        <span class="font-mono font-medium text-gray-900">
+                          {{ intake.planned_time ?? intake.time }}
+                        </span>
+                        <span class="text-gray-600">
+                          {{ intakeStatusLabels[intake.status] }}
+                        </span>
+                      </div>
+
+                      @if (intake.status === 'scheduled') {
+                        <div
+                          role="group"
+                          class="mt-2 flex flex-wrap gap-2"
+                          [attr.aria-label]="
+                            'Record the ' +
+                            intake.time +
+                            ' dose of ' +
+                            medication.medicationName
+                          "
+                          [attr.aria-busy]="
+                            isSubmitting(intakeTarget(medication, intake))
+                          "
+                        >
+                          <button
+                            type="button"
+                            class="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
+                            [disabled]="
+                              isSubmitting(intakeTarget(medication, intake))
+                            "
+                            (click)="
+                              recordOnTime(intakeTarget(medication, intake))
+                            "
+                          >
+                            Taken on time
+                          </button>
+                          <button
+                            type="button"
+                            class="rounded-md border border-amber-300 bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-800 transition-colors hover:bg-amber-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
+                            [attr.aria-expanded]="
+                              isLateOpen(intakeTarget(medication, intake))
+                            "
+                            [attr.aria-controls]="
+                              lateInputId(intakeTarget(medication, intake))
+                            "
+                            [disabled]="
+                              isSubmitting(intakeTarget(medication, intake))
+                            "
+                            (click)="openLateForm(intakeTarget(medication, intake))"
+                          >
+                            Taken late
+                          </button>
+                          <button
+                            type="button"
+                            class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 disabled:cursor-not-allowed disabled:opacity-60"
+                            [disabled]="
+                              isSubmitting(intakeTarget(medication, intake))
+                            "
+                            (click)="
+                              recordSkipped(intakeTarget(medication, intake))
+                            "
+                          >
+                            Skipped
+                          </button>
+                        </div>
+
+                        @if (isLateOpen(intakeTarget(medication, intake))) {
+                          <form
+                            class="mt-3 flex flex-wrap items-end gap-2 rounded-md border border-amber-200 bg-amber-50 p-3"
+                            (submit)="
+                              submitLate(intakeTarget(medication, intake), $event)
+                            "
+                          >
+                            <div class="flex flex-col gap-1">
+                              <label
+                                [attr.for]="
+                                  lateInputId(intakeTarget(medication, intake))
+                                "
+                                class="text-xs font-medium text-amber-900"
+                              >
+                                Time taken
+                              </label>
+                              <input
+                                #lateInput
+                                [attr.id]="
+                                  lateInputId(intakeTarget(medication, intake))
+                                "
+                                type="datetime-local"
+                                [value]="lateTakenAt()"
+                                (input)="onLateInput($event)"
+                                class="rounded-md border border-amber-300 bg-white px-2 py-1 text-sm text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
+                              />
+                            </div>
+                            <button
+                              type="submit"
+                              class="rounded-md border border-transparent bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
+                              [disabled]="
+                                isSubmitting(intakeTarget(medication, intake))
+                              "
+                            >
+                              Save late dose
+                            </button>
+                            <button
+                              type="button"
+                              class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500"
+                              (click)="cancelLateForm()"
+                            >
+                              Cancel
+                            </button>
+                          </form>
+                        }
+                      }
                     </li>
                   }
                 </ul>

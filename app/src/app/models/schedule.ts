@@ -96,3 +96,33 @@ export interface PersonTodayView {
   person: Person;
   medications: MedicationPlanView[];
 }
+
+/** Dose outcomes the server accepts (see App\Enums\DoseEventOutcome). */
+export type DoseEventOutcome = 'on_time' | 'late' | 'skipped';
+
+/** A recorded dose event as the server returns it. */
+export interface DoseEvent {
+  id: number;
+  schedule_id: number;
+  intake_id: number | null;
+  outcome: DoseEventOutcome;
+  taken_at: string | null;
+  created_at: string;
+}
+
+/**
+ * Write body for POST /api/v1/dose-events.
+ *
+ * A dose attaches by `intake_id` for fixed-times meds (the grid slot it
+ * records) or by `schedule_id` for interval meds, which have no intake
+ * grid: the dose resolves to the schedule's rolling cadence rather than a
+ * phantom intake. `taken_at` is the actual dose moment; the server requires
+ * it for every late dose and for interval on-time doses, because the
+ * cadence re-anchors on actual dose moments.
+ */
+export interface StoreDoseEventPayload {
+  outcome: DoseEventOutcome;
+  intake_id?: number;
+  schedule_id?: number;
+  taken_at?: string;
+}
