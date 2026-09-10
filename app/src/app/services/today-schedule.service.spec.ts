@@ -92,4 +92,38 @@ describe('TodayScheduleService', () => {
       ],
     });
   });
+
+  it('posts a dose event and unwraps the data envelope', () => {
+    let result: unknown;
+    const payload = {
+      outcome: 'late' as const,
+      intake_id: 1,
+      taken_at: '2026-09-09T16:00:00.000Z',
+    };
+
+    service.recordDoseEvent(payload).subscribe((value) => (result = value));
+
+    const request = httpMock.expectOne('/api/v1/dose-events');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual(payload);
+    request.flush({
+      data: {
+        id: 9,
+        schedule_id: 5,
+        intake_id: 1,
+        outcome: 'late',
+        taken_at: '2026-09-09T16:00:00.000Z',
+        created_at: '',
+      },
+    });
+
+    expect(result).toEqual({
+      id: 9,
+      schedule_id: 5,
+      intake_id: 1,
+      outcome: 'late',
+      taken_at: '2026-09-09T16:00:00.000Z',
+      created_at: '',
+    });
+  });
 });
