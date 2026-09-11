@@ -1,0 +1,139 @@
+<div class="mx-auto max-w-2xl px-4 py-6">
+  <header class="mb-6">
+    <h1 class="text-2xl font-semibold text-gray-900">Stock &amp; inventory</h1>
+    <p class="mt-1 text-sm text-gray-500">
+      Refill forecasts and leftover medications, fetched live from the server.
+    </p>
+  </header>
+
+  @if (isLoading()) {
+    <section aria-busy="true">
+      <p role="status" class="text-sm text-gray-600">Loading stock…</p>
+    </section>
+  }
+
+  @if (error(); as requestError) {
+    <div
+      role="alert"
+      class="rounded-md border border-red-300 bg-red-50 p-4 text-sm text-red-800"
+    >
+      Couldn't load stock and inventory: {{ requestError.message }}
+    </div>
+  }
+
+  @let view = stock();
+
+  @if (view && !isLoading() && error() === undefined) {
+    <!-- Packages with their server-computed refill forecast -->
+    <section class="mb-8" aria-labelledby="packages-heading">
+      <h2 id="packages-heading" class="mb-3 text-lg font-semibold text-gray-900">
+        Refill forecast
+      </h2>
+
+      @if (view.packages.length === 0) {
+        <p role="status" class="text-sm text-gray-600">
+          No packages on record yet.
+        </p>
+      } @else {
+        <ul class="space-y-4">
+          @for (pkg of sortedPackages(); track pkg.id) {
+            <li>
+              <article
+                class="rounded-xl border p-5 shadow-sm"
+                [class.border-amber-300]="displayStatus(pkg.forecast) === 'refill_soon'"
+                [class.bg-amber-50]="displayStatus(pkg.forecast) === 'refill_soon'"
+                [class.border-red-300]="displayStatus(pkg.forecast) === 'empty'"
+                [class.bg-red-50]="displayStatus(pkg.forecast) === 'empty'"
+                [class.border-gray-200]="!isLow(pkg.forecast)"
+                [class.bg-white]="!isLow(pkg.forecast)"
+              >
+                <div class="flex items-start justify-between gap-4">
+                  <h3 class="text-lg font-semibold text-gray-900">
+                    {{ pkg.medicationName }}
+                  </h3>
+                  <span
+                    class="inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium"
+                    [class.bg-red-100]="displayStatus(pkg.forecast) === 'empty'"
+                    [class.text-red-800]="displayStatus(pkg.forecast) === 'empty'"
+                    [class.bg-amber-100]="displayStatus(pkg.forecast) === 'refill_soon'"
+                    [class.text-amber-800]="displayStatus(pkg.forecast) === 'refill_soon'"
+                    [class.bg-emerald-100]="displayStatus(pkg.forecast) === 'ok'"
+                    [class.text-emerald-800]="displayStatus(pkg.forecast) === 'ok'"
+                    [class.bg-gray-100]="displayStatus(pkg.forecast) === 'no-schedule'"
+                    [class.text-gray-700]="displayStatus(pkg.forecast) === 'no-schedule'"
+                  >
+                    {{ statusLabel[displayStatus(pkg.forecast)] }}
+                  </span>
+                </div>
+
+                @if (displayStatus(pkg.forecast) === 'no-schedule') {
+                  <p class="mt-3 text-sm text-gray-600">
+                    {{ pkg.remainingDoses }}
+                    {{ pkg.remainingDoses === 1 ? 'dose' : 'doses' }} left — no
+                    schedule yet, so a refill date can't be forecast.
+                  </p>
+                } @else {
+                  @let forecast = pkg.forecast!;
+                  <p class="mt-3 text-sm font-medium text-gray-900">
+                    {{ forecast.message }}
+                  </p>
+                  <dl
+                    class="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm"
+                  >
+                    <dt class="text-gray-500">Doses left</dt>
+                    <dd class="font-medium text-gray-900">
+                      {{ forecast.doses_remaining }}
+                    </dd>
+                    <dt class="text-gray-500">Days of supply</dt>
+                    <dd class="text-gray-700">
+                      {{ forecast.days_of_supply_left }}
+                    </dd>
+                    <dt class="text-gray-500">Refill by</dt>
+                    <dd class="text-gray-700">
+                      {{ forecast.refill_by }} ({{ forecast.refill_by_day }})
+                    </dd>
+                  </dl>
+                }
+              </article>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- Home inventory: leftover meds with expiry dates -->
+    <section aria-labelledby="inventory-heading">
+      <h2 id="inventory-heading" class="mb-3 text-lg font-semibold text-gray-900">
+        Home inventory
+      </h2>
+
+      @if (view.inventory.length === 0) {
+        <p role="status" class="text-sm text-gray-600">
+          The home inventory box is empty.
+        </p>
+      } @else {
+        <ul class="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white shadow-sm">
+          @for (entry of view.inventory; track entry.id) {
+            <li class="flex items-center justify-between gap-4 px-4 py-3 text-sm">
+              <span class="font-medium text-gray-900">{{ entry.name }}</span>
+              @if (entry.expiry_date === null) {
+                <span class="text-gray-500">No expiry date</span>
+              } @else {
+                <span
+                  class="font-medium"
+                  [class.text-red-700]="isExpired(entry.expiry_date)"
+                  [class.text-gray-700]="!isExpired(entry.expiry_date)"
+                >
+                  Expires {{ entry.expiry_date }}
+                  @if (isExpired(entry.expiry_date)) {
+                    — past its date
+                  }
+                </span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</div>
