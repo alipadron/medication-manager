@@ -25,6 +25,7 @@ import {
 } from '../../models/schedule';
 import { TodayScheduleService } from '../../services/today-schedule.service';
 import { PushStatusComponent } from '../../components/push-status/push-status.component';
+import { NudgeComponent } from '../../components/nudge/nudge.component';
 
 /** The schedule a dose resolves to, plus the intake grid slot for fixed-times. */
 interface DoseRef {
@@ -49,7 +50,7 @@ interface DoseTarget extends DoseRef {
  */
 @Component({
   selector: 'app-today-schedule',
-  imports: [RouterLink, PushStatusComponent],
+  imports: [RouterLink, PushStatusComponent, NudgeComponent],
   templateUrl: './today-schedule.component.html',
 })
 export class TodayScheduleComponent {
@@ -78,6 +79,14 @@ export class TodayScheduleComponent {
     () =>
       this.people()?.find((person) => person.id === this.selectedPersonId())?.name ??
       'household member',
+  );
+
+  /** The other household member — the one this view is NOT showing. The
+   *  nudge affordance targets them (ping the partner, not yourself). */
+  readonly otherPerson = computed(
+    () =>
+      this.people()?.find((person) => person.id !== this.selectedPersonId()) ??
+      undefined,
   );
 
   readonly #todayResource = rxResource({

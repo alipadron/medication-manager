@@ -29,6 +29,10 @@
       [personId]="selectedPersonId()"
       [personName]="personName()"
     />
+    <app-nudge
+      [personId]="otherPerson()?.id"
+      [personName]="otherPerson()?.name ?? 'household member'"
+    />
   </header>
 
   @if (isLoading()) {
