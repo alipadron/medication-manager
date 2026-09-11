@@ -25,6 +25,10 @@
     <p class="mt-1 text-sm text-gray-500">
       Fetched live from the server — the source of truth.
     </p>
+    <app-push-status
+      [personId]="selectedPersonId()"
+      [personName]="personName()"
+    />
   </header>
 
   @if (isLoading()) {

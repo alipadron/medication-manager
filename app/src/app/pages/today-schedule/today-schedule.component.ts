@@ -24,6 +24,7 @@ import {
   StoreDoseEventPayload,
 } from '../../models/schedule';
 import { TodayScheduleService } from '../../services/today-schedule.service';
+import { PushStatusComponent } from '../../components/push-status/push-status.component';
 
 /** The schedule a dose resolves to, plus the intake grid slot for fixed-times. */
 interface DoseRef {
@@ -48,7 +49,7 @@ interface DoseTarget extends DoseRef {
  */
 @Component({
   selector: 'app-today-schedule',
-  imports: [RouterLink],
+  imports: [RouterLink, PushStatusComponent],
   templateUrl: './today-schedule.component.html',
 })
 export class TodayScheduleComponent {
@@ -75,8 +76,8 @@ export class TodayScheduleComponent {
 
   readonly personName = computed(
     () =>
-      this.people()?.find((person) => person.id === this.selectedPersonId())
-        ?.name ?? 'household member',
+      this.people()?.find((person) => person.id === this.selectedPersonId())?.name ??
+      'household member',
   );
 
   readonly #todayResource = rxResource({
@@ -122,8 +123,7 @@ export class TodayScheduleComponent {
   /** The last successful dose-action confirmation. */
   readonly actionNotice = signal<string | null>(null);
 
-  protected readonly lateInput =
-    viewChild<ElementRef<HTMLInputElement>>('lateInput');
+  protected readonly lateInput = viewChild<ElementRef<HTMLInputElement>>('lateInput');
 
   constructor() {
     // Move focus into the late form when it opens (WCAG focus management).
@@ -156,10 +156,7 @@ export class TodayScheduleComponent {
   }
 
   /** The dose reference for one fixed-times intake row. */
-  protected intakeTarget(
-    medication: MedicationPlanView,
-    intake: FixedIntakePlan,
-  ): DoseTarget {
+  protected intakeTarget(medication: MedicationPlanView, intake: FixedIntakePlan): DoseTarget {
     return {
       scheduleId: medication.scheduleId,
       intakeId: intake.id,
@@ -189,8 +186,7 @@ export class TodayScheduleComponent {
     // An interval dose has no intake slot, so the server needs the actual
     // moment to re-anchor the rolling cadence. A fixed-times dose resolves
     // to its grid slot, whose time the server already owns.
-    const takenAt =
-      target.intakeId === null ? new Date().toISOString() : undefined;
+    const takenAt = target.intakeId === null ? new Date().toISOString() : undefined;
 
     this.#record(target, 'on_time', takenAt);
   }
@@ -241,10 +237,7 @@ export class TodayScheduleComponent {
       : date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
-  protected readonly intakeStatusLabels: Record<
-    FixedIntakePlan['status'],
-    string
-  > = {
+  protected readonly intakeStatusLabels: Record<FixedIntakePlan['status'], string> = {
     scheduled: 'Scheduled',
     skipped: 'Skipped',
     on_time: 'Taken on time',
@@ -256,11 +249,7 @@ export class TodayScheduleComponent {
    * Post one dose event, then re-read that schedule's authoritative plan so
    * the view reflects the server's re-anchored due time / shifted grid.
    */
-  #record(
-    target: DoseTarget,
-    outcome: DoseEventOutcome,
-    takenAt?: string,
-  ): void {
+  #record(target: DoseTarget, outcome: DoseEventOutcome, takenAt?: string): void {
     const key = this.doseKey(target);
     this.submittingKey.set(key);
     this.actionError.set(null);

@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
+import { SwPush } from '@angular/service-worker';
 import { of } from 'rxjs';
 
 import {
@@ -112,6 +114,9 @@ describe('TodayScheduleComponent', () => {
       imports: [TodayScheduleComponent],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
+        // The render includes <app-push-status>; give it inert push bindings.
+        { provide: SwPush, useValue: {} },
         {
           provide: TodayScheduleService,
           useClass: FakeTodayScheduleService,
@@ -119,9 +124,7 @@ describe('TodayScheduleComponent', () => {
       ],
     }).compileComponents();
 
-    service = TestBed.inject(
-      TodayScheduleService,
-    ) as unknown as FakeTodayScheduleService;
+    service = TestBed.inject(TodayScheduleService) as unknown as FakeTodayScheduleService;
 
     fixture = TestBed.createComponent(TodayScheduleComponent);
     fixture.componentRef.setInput('personId', '1');
@@ -200,9 +203,7 @@ describe('TodayScheduleComponent', () => {
     button(fixed, 'Taken late').click();
     fixture.detectChanges();
 
-    const input = fixed.querySelector<HTMLInputElement>(
-      'input[type="datetime-local"]',
-    );
+    const input = fixed.querySelector<HTMLInputElement>('input[type="datetime-local"]');
     expect(input).not.toBeNull();
     input!.value = '2026-09-09T10:15';
     input!.dispatchEvent(new Event('input'));
@@ -214,9 +215,7 @@ describe('TodayScheduleComponent', () => {
     expect(service.recorded).toHaveLength(1);
     expect(service.recorded[0].outcome).toBe('late');
     expect(service.recorded[0].intake_id).toBe(1);
-    expect(service.recorded[0].taken_at).toBe(
-      new Date('2026-09-09T10:15').toISOString(),
-    );
+    expect(service.recorded[0].taken_at).toBe(new Date('2026-09-09T10:15').toISOString());
     expect(service.planCalls).toEqual([2]);
     // The grid now shows the server's shifted planned time.
     expect(text()).toContain('22:00');
