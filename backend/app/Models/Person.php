@@ -23,4 +23,14 @@ class Person extends Model
     {
         return $this->hasMany(Medication::class);
     }
+
+    /**
+     * Get the browser push devices enrolled for this person.
+     *
+     * @return HasMany<PushSubscription, $this>
+     */
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
 }
