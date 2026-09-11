@@ -27,6 +27,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "push-worker.js",
+                "input": "src",
+                "output": ""
               }
             ],
             "styles": [
