@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\HomeInventoryController;
 use App\Http\Controllers\Api\V1\MedicationController;
 use App\Http\Controllers\Api\V1\PackageController;
 use App\Http\Controllers\Api\V1\PersonController;
+use App\Http\Controllers\Api\V1\PushNudgeController;
 use App\Http\Controllers\Api\V1\PushSubscriptionController;
 use App\Http\Controllers\Api\V1\ScheduleController;
 use App\Http\Controllers\Api\V1\VapidPublicKeyController;
@@ -19,6 +20,7 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('packages', PackageController::class)->only(['index', 'store', 'update']);
     Route::apiResource('home-inventory', HomeInventoryController::class)->only(['index', 'store']);
     Route::apiResource('push-subscriptions', PushSubscriptionController::class)->only(['store', 'destroy']);
+    Route::post('push/nudge', PushNudgeController::class)->name('push.nudge');
     Route::get('push/vapid-public-key', VapidPublicKeyController::class)
         ->name('push.vapid-public-key');
 });
