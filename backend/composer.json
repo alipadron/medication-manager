@@ -45,6 +45,9 @@
             "npm install --ignore-scripts",
             "npm run build"
         ],
+        "frontend:build": [
+            "@php artisan frontend:build"
+        ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "@php artisan dev"

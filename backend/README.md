@@ -56,3 +56,29 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Single-origin serving (UI + API + push on one origin)
+
+The Angular UI (../app) is built into Laravel's `public/` root so the SPA, the
+`/api/*` endpoints, and web push share one origin (no CORS).
+
+Build the frontend:
+
+```bash
+composer frontend:build   # = php artisan frontend:build
+```
+
+This runs `ng build --configuration=production` in `../app` and publishes
+`app/dist/app/browser/*` into `public/`. It never touches Laravel-owned files
+(`index.php`, `.htaccess`, `robots.txt`, `build/`). The generated SPA files are
+gitignored and recreated at build time. First-time setup: `npm ci` in `../app`.
+
+Routing: `/api/v1/*` and the `/up` health probe keep precedence by construction
+(a `Route::fallback` serves the SPA only when no other route matched), so every
+other non-asset GET is a client-side Angular deep link returning `index.html`.
+
+Run locally:
+
+```bash
+php artisan serve          # root serves the SPA, /api/v1/* serves JSON
+```
