@@ -15,7 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withSchedule(function (Schedule $schedule): void {
-        $schedule->command(SendDueDoseNotifications::class)->everyMinute();
+        $schedule->command(SendDueDoseNotifications::class)
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         //
