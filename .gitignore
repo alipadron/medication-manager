@@ -14,6 +14,22 @@ backend/public/build/*
 backend/.phpunit.result.cache
 backend/database/*.sqlite
 
+# Built Angular SPA (single-origin serving) — produced by `composer frontend:build`
+# into Laravel's public root; generated at deploy time, not committed.
+backend/public/index.html
+backend/public/index.csr.html
+backend/public/manifest.webmanifest
+backend/public/ngsw.json
+backend/public/ngsw-worker.js
+backend/public/push-worker.js
+backend/public/worker-basic.min.js
+backend/public/safety-worker.js
+backend/public/3rdpartylicenses.txt
+backend/public/favicon.ico
+backend/public/icons/
+backend/public/*.js
+backend/public/*.css
+
 # Misc
 .DS_Store
 *.log
