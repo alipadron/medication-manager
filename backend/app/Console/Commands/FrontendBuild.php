@@ -32,11 +32,6 @@ class FrontendBuild extends Command
             return static::FAILURE;
         }
 
-        if (File::exists($appDir.'/package-lock.json')) {
-            $this->components->info('Installing Angular dependencies (npm ci)...');
-            $this->runProcess(['npm', 'ci'], $appDir);
-        }
-
         $this->components->info('Building Angular app (ng build)...');
         $this->runProcess(['npm', 'run', 'build', '--', '--configuration=production'], $appDir);
 
