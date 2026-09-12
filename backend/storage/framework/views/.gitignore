@@ -1,0 +1,8 @@
+# This file keeps the directory present in the repo so it exists on every
+# checkout/deploy (git does not track empty dirs). Laravel's Blade compiler
+# requires storage/framework/views to exist before it will write compiled
+# views; without it, platform "Please provide a valid cache path" errors on
+# ephemeral platforms like Laravel Cloud. The actual compiled files stay
+# gitignored.
+*
+!.gitignore
